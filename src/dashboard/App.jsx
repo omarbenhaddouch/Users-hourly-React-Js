@@ -322,7 +322,7 @@ export default function App() {
                         key={i}
                         initial={{ opacity: 0, x: -6 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.02, duration: 0.15 }}
+                        transition={{ delay: i * 0.20, duration: 0.10 }}
                       >
                         <td>H{i + 1}</td>
                         <td>{detailLog.hourlyTarget || 0}</td>

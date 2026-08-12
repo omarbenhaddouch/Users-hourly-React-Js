@@ -41,6 +41,26 @@
       position: relative;
     }
 
+
+    @keyframes shimmerPulse {
+      0% {
+        background-color: rgba(255, 255, 255, 0.05);
+      }
+
+      50% {
+        background-color: rgba(255, 255, 255, 0.15);
+      }
+
+      100% {
+        background-color: rgba(255, 255, 255, 0.05);
+      }
+    }
+
+    .skeleton-box {
+      animation: shimmerPulse 1.4s ease-in-out infinite;
+      background-color: rgba(255, 255, 255, 0.08);
+    }
+
     header {
       display: flex;
       justify-content: space-between;
@@ -454,7 +474,9 @@
       width: 47%;
     }
 
-    .field-group, .field-group-m, .field-group-p label {
+    .field-group,
+    .field-group-m,
+    .field-group-p label {
       font-size: 0.72rem;
       color: var(--brick);
       font-weight: 700;

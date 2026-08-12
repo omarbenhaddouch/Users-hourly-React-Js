@@ -19,12 +19,18 @@ export const modalPop = {
 
 // For popup cards / grid items that stagger in
 export const gridContainer = {
-  animate: { transition: { staggerChildren: 0.03 } },
+  animate: { transition: { staggerChildren: 0.5 } },
 };
 
 export const gridItem = {
   initial: { opacity: 0, y: 8 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.16 } },
+  animate: { opacity: 1, y: 0, 
+    transition: {
+      damping: 25,
+          mass: .3,
+          stiffness: 750,
+          type: 'spring',
+      duration: 1 } },
 };
 
 // Standard tap/hover feel for primary action buttons
