@@ -63,6 +63,10 @@ export default function App() {
     const [restoring, setRestoring] = useState(true);
     const [cssReady, setCssReady] = useState(false);
 
+    // ---------- Skeleton Timer States ----------
+    const [minSkeletonTimePassed, setMinSkeletonTimePassed] = useState(false);
+    const [skeletonTimedOut, setSkeletonTimedOut] = useState(false);
+
     // ---------- Login form ----------
     const [loginMachineId, setLoginMachineId] = useState("");
     const [loginPartName, setLoginPartName] = useState("");
@@ -91,9 +95,30 @@ export default function App() {
     const [syncBusy, setSyncBusy] = useState(false);
 
     // ==================================================================
-    // CSS STYLESHEET DETECTION GUARD
+    // SKELETON DELAY & TIMEOUT CONTROLLER
     // ==================================================================
     useEffect(() => {
+        // 1. Minimum skeleton visibility duration (1000ms)
+        const minTimer = setTimeout(() => {
+            setMinSkeletonTimePassed(true);
+        }, 1000);
+
+        // 2. Maximum fallback timeout to avoid getting stuck (3000ms)
+        const timeoutTimer = setTimeout(() => {
+            setSkeletonTimedOut(true);
+        }, 3000);
+
+        return () => {
+            clearTimeout(minTimer);
+            clearTimeout(timeoutTimer);
+        };
+    }, []);
+
+    // ==================================================================
+    // CSS STYLESHEET DETECTION GUARD WITH FALLBACK
+    // ==================================================================
+    useEffect(() => {
+        let attempts = 0;
         const checkCssLoaded = () => {
             const sheets = Array.from(document.styleSheets);
             const isOperatorCssLoaded = sheets.some((sheet) => {
@@ -104,9 +129,10 @@ export default function App() {
                 }
             });
 
-            if (isOperatorCssLoaded || sheets.length > 0) {
+            if (isOperatorCssLoaded || attempts > 20) {
                 setCssReady(true);
             } else {
+                attempts++;
                 setTimeout(checkCssLoaded, 50);
             }
         };
@@ -521,9 +547,11 @@ export default function App() {
     else if (efficiency < 98) statusColor = "var(--neon-yellow)";
 
     // ==================================================================
-    // SKELETON RENDER (WHILE RESTORING SESSION OR CSS PARSING)
+    // SKELETON RENDER (WITH DELAY & TIMEOUT LOGIC)
     // ==================================================================
-    if (restoring || !cssReady) {
+    const shouldShowSkeleton = (!minSkeletonTimePassed || restoring || !cssReady) && !skeletonTimedOut;
+
+    if (shouldShowSkeleton) {
         return <DashboardSkeleton />;
     }
 
@@ -679,48 +707,90 @@ export default function App() {
 }
 
 // ======================================================================
-// SKELETON LOADERS
+// SELF-CONTAINED SKELETON LOADER
 // ======================================================================
 
 function DashboardSkeleton() {
     return (
-        <div style={{ maxWidth: 1000, margin: "0 auto", padding: "16px" }}>
+        <div style={{ maxWidth: 1000, margin: "0 auto", padding: "16px", fontFamily: "sans-serif" }}>
+            <style>{`
+                @keyframes skeleton-shimmer {
+                    0% { background-position: -200px 0; }
+                    100% { background-position: calc(200px + 100%) 0; }
+                }
+                .sk-pulse {
+                    background: #e2e8f0;
+                    background-image: linear-gradient(
+                        90deg, 
+                        #e2e8f0 0px, 
+                        #f1f5f9 40px, 
+                        #e2e8f0 80px
+                    );
+                    background-size: 200px 100%;
+                    background-repeat: no-repeat;
+                    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+                }
+            `}</style>
+
             <header style={{ marginBottom: 20 }}>
-                <div className="shift-info" style={{ display: "flex", gap: 10 }}>
-                    <div className="skeleton-box" style={{ width: 110, height: 32, borderRadius: 20 }} />
-                    <div className="skeleton-box" style={{ width: 90, height: 32, borderRadius: 20 }} />
-                    <div className="skeleton-box" style={{ width: 130, height: 32, borderRadius: 20 }} />
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 10, width: "100%" }}>
+                    <div className="sk-pulse" style={{flex: 1, height: 32, borderRadius: 8 }} />
+                    <div className="sk-pulse" style={{ flex:1, height: 32, borderRadius: 8 }} />
+                    <div className="sk-pulse" style={{ flex:1,  height: 32, borderRadius: 8 }} />
                 </div>
             </header>
 
-            <div className="machine-card">
-                <div className="card-header" style={{ display: "flex", justifyContent: "space-between", marginBottom: 20 }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                        <div className="skeleton-box" style={{ width: 150, height: 28, borderRadius: 6 }} />
-                        <div className="skeleton-box" style={{ width: 100, height: 16, borderRadius: 4 }} />
+            <div style={{
+                background: "#ffffff",
+                borderRadius: 12,
+                padding: 20,
+                border: "1px solid #e2e8f0",
+                boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)",
+                
+            }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20 , gap:10}}>
+                    <div style={{ display: "flex",flex:1, flexDirection: "column", gap: 8 }}>
+                        <div className="sk-pulse" style={{ flex:1, width: "100%", borderRadius: 6 }} />
+                        <div className="sk-pulse" style={{ flex:1, width: "100%", borderRadius: 4 }} />
                     </div>
-                    <div className="skeleton-box" style={{ width: 140, height: 24, borderRadius: 12 }} />
+                    <div className="sk-pulse" style={{ flex:1, height: 24, borderRadius: 12 }} />
                 </div>
 
-                <div className="metrics-row" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 24 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 24 }}>
                     {[1, 2, 3].map((i) => (
-                        <div key={i} className="metric-box" style={{ minHeight: 70, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
-                            <div className="skeleton-box" style={{ width: "50%", height: 26, borderRadius: 4, marginBottom: 8 }} />
-                            <div className="skeleton-box" style={{ width: "70%", height: 12, borderRadius: 4 }} />
+                        <div key={i} style={{
+                            height: 70,
+                            padding: 12,
+                            borderRadius: 8,
+                            border: "1px solid #f1f5f9",
+                            background: "#fafafa",
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "center",
+                            alignItems: "center"
+                        }}>
+                            <div className="sk-pulse" style={{ width: "50%", height: 22, borderRadius: 4, marginBottom: 8 }} />
+                            <div className="sk-pulse" style={{ width: "70%", height: 12, borderRadius: 4 }} />
                         </div>
                     ))}
                 </div>
 
-                <div className="hours-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
                     {[1, 2, 3, 4, 5, 6, 7, 8].map((h) => (
-                        <div key={h} className="hour-pill" style={{ minHeight: 80, padding: 12 }}>
-                            <div className="skeleton-box" style={{ width: "40%", height: 12, borderRadius: 4, marginBottom: 10 }} />
-                            <div className="skeleton-box" style={{ width: "100%", height: 38, borderRadius: 6 }} />
+                        <div key={h} style={{
+                            height: 90,
+                            padding: 12,
+                            borderRadius: 8,
+                            border: "1px solid #f1f5f9",
+                            background: "#fafafa"
+                        }}>
+                            <div className="sk-pulse" style={{ width: "40%", height: 12, borderRadius: 4, marginBottom: 12 }} />
+                            <div className="sk-pulse" style={{ width: "100%", height: 38, borderRadius: 6 }} />
                         </div>
                     ))}
                 </div>
 
-                <div className="skeleton-box" style={{ width: "100%", height: 48, borderRadius: 8, marginBottom: 12 }} />
+                <div className="sk-pulse" style={{ width: "100%", height: 48, borderRadius: 8 }} />
             </div>
         </div>
     );
@@ -919,7 +989,7 @@ function ClearConfirmModal({ machineId, onConfirm, onCancel }) {
 
 function MachineModal({ machines, currentId, onSelect, onClose }) {
     return (
-        <motion.div className="overlay-container" variants={overlayFade} initial="initial" animate="animate" exit="exit">
+        <motion.div className="overlay-container" >
             <motion.div className="modal-box" variants={modalPop} initial="initial" animate="animate" exit="exit">
                 <div className="modal-header">
                     <h3><i className="fa-solid fa-server" /> SELECT MACHINE</h3>
@@ -952,8 +1022,8 @@ function MachineModal({ machines, currentId, onSelect, onClose }) {
 
 function PartModal({ parts, currentName, onSelect, onClose }) {
     return (
-        <motion.div className="overlay-container" variants={overlayFade} initial="initial" animate="animate" exit="exit">
-            <motion.div className="modal-box" variants={modalPop} initial="initial" animate="animate" exit="exit">
+        <motion.div className="overlay-container" variants={overlayFade} initial="initial" animate="animate" >
+            <motion.div className="modal-box" variants={modalPop} initial="initial" animate="animate" >
                 <div className="modal-header">
                     <h3><i className="fa-solid fa-gear" /> SELECT PART</h3>
                     <motion.button className="close-btn" onClick={onClose} {...chipTap}><i className="fa-solid fa-xmark" /></motion.button>
@@ -973,7 +1043,7 @@ function PartModal({ parts, currentName, onSelect, onClose }) {
                                 className={`popup-card ${p.name === currentName ? "active" : ""}`}
                                 onClick={() => onSelect(p.name, p.target)}
                                 variants={gridItem}
-                                whileHover={{ y: -3 }}
+                                
                                 whileTap={{ scale: 0.96 }}
                             >
                                 <div className="popup-card-title">{p.name}</div>

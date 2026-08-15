@@ -3,7 +3,7 @@
 export const overlayFade = {
   initial: { opacity: 0 },
   animate: { opacity: 1, transition: { duration: 0.18 } },
-  exit: { opacity: 0, transition: { duration: 0.15 } },
+
 };
 
 export const modalPop = {
@@ -12,32 +12,36 @@ export const modalPop = {
     opacity: 1,
     scale: 1,
     y: 0,
-    transition: { type: "spring", stiffness: 420, damping: 32 },
+    transition: { type: "spring", stiffness: 3000, damping: 32 },
   },
-  exit: { opacity: 0, scale: 0.94, y: 8, transition: { duration: 0.15 } },
 };
 
 // For popup cards / grid items that stagger in
 export const gridContainer = {
-  animate: { transition: { staggerChildren: 0.5 } },
+  initial: { opacity: 0 },
+  animate: {
+    opacity:1,
+    transition: {
+      staggerChildren: 0.1,
+    }
+  },
 };
 
 export const gridItem = {
-  initial: { opacity: 0, y: 8 },
-  animate: { opacity: 1, y: 0, 
+  initial: { y: 7, opacity: 0 },
+  animate: {
+    y: 0, opacity: 1,
     transition: {
-      damping: 25,
-          mass: .3,
-          stiffness: 750,
-          type: 'spring',
-      duration: 1 } },
+      type: 'spring',
+      stiffness: 3000,
+    }
+  },
 };
 
 // Standard tap/hover feel for primary action buttons
 export const buttonTap = {
-  whileHover: { y: -2 },
-  whileTap: { scale: 0.96, y: 0 },
-  transition: { type: "spring", stiffness: 500, damping: 30 },
+  whileTap: { scale: 0.96 },
+  transition: { type: "spring", stiffness: 1000, damping: 30 },
 };
 
 // Lighter tap feel for smaller/secondary controls (chips, icon buttons)
